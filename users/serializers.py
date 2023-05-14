@@ -34,3 +34,4 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         user.save()
         UserProfile.objects.create(user=user)
         return user
+    
