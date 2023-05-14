@@ -6,6 +6,7 @@ class BookSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
         fields = ('title', 'author', 'available_copies')
+        
 
 class RentalSerializer(serializers.ModelSerializer):
     user_profile = UserProfileSerializer()
