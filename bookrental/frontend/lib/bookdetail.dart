@@ -1,37 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'Book.dart';
+import 'NetworkService.dart';
 
 class BookDetailsScreen extends StatefulWidget {
-  final int bookId;
+  final String token;
+  final Book book;
 
-  BookDetailsScreen({required this.bookId});
+  BookDetailsScreen({required this.token, required this.book});
 
   @override
   _BookDetailsScreenState createState() => _BookDetailsScreenState();
 }
 
 class _BookDetailsScreenState extends State<BookDetailsScreen> {
-  Future<void> rentBook() async {
-    final response = await http.post(
-      Uri.parse('http://127.0.0.1:8000/api/books/rentals/'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        // Assume 'token' is your authentication token
-        'Authorization': 'Token <token>',
-      },
-      body: jsonEncode(<String, String>{
-        'book': widget.bookId.toString(),
-        // Assume 'userProfileId' is the ID of the user's profile
-        'user_profile': '<userProfileId>',
-        'rental_days': '7', // Assume the book is rented for 7 days
-      }),
-    );
+  Future<void> _rentBook() async {
+    if (widget.book.id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Book rented successfully')),
+      );
+      return;
+    }
 
-    if (response.statusCode == 200) {
-      print('Book rented successfully');
-    } else {
-      throw Exception('Failed to rent book');
+    try {
+      await NetworkService().rentBook(widget.token, widget.book.id!);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Book rented successfully')),
+      );
+    } catch (e) {
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to rent book')),
+      );
     }
   }
 
@@ -39,12 +38,20 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Rent a Book'),
+        title: Text(widget.book.title),
       ),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: rentBook,
-          child: Text('Rent this book'),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          children: <Widget>[
+            Text(widget.book.title, style: TextStyle(fontSize: 24)),
+            Text(widget.book.author, style: TextStyle(fontSize: 18)),
+            Text('Available Copies: ${widget.book.availableCopies}'),
+            ElevatedButton(
+              onPressed: _rentBook,
+              child: Text('Rent this book'),
+            ),
+          ],
         ),
       ),
     );

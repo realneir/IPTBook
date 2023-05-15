@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'Book.dart';
 import 'NetworkService.dart';
+import 'bookdetail.dart';
 
 class BookPage extends StatefulWidget {
   final String token;
@@ -13,12 +14,22 @@ class BookPage extends StatefulWidget {
 
 class _BookPageState extends State<BookPage> {
   Future<List<Book>>? _futureBooks;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _futureBooks =
-        NetworkService().fetchBooks(widget.token) as Future<List<Book>>?;
+    _fetchBooks();
+  }
+
+  Future<void> _fetchBooks() async {
+    try {
+      _futureBooks = NetworkService().fetchBooks(widget.token);
+    } catch (e, stackTrace) {
+      _errorMessage = e.toString();
+      print('Error fetching books: $_errorMessage');
+      print('Stack trace: $stackTrace');
+    }
   }
 
   @override
@@ -32,8 +43,8 @@ class _BookPageState extends State<BookPage> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('An error occurred'));
+          } else if (snapshot.hasError || _errorMessage != null) {
+            return Center(child: Text('An error occurred: $_errorMessage'));
           } else if (snapshot.hasData) {
             return ListView.builder(
               itemCount: snapshot.data!.length,
@@ -43,6 +54,17 @@ class _BookPageState extends State<BookPage> {
                   subtitle: Text(snapshot.data![index].author),
                   trailing: Text(
                       'Available Copies: ${snapshot.data![index].availableCopies}'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BookDetailsScreen(
+                          token: widget.token,
+                          book: snapshot.data![index],
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             );

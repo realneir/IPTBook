@@ -46,11 +46,34 @@ class NetworkService {
       headers: {'Authorization': 'Token $token'},
     );
 
+    print('Status code: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
     if (response.statusCode == 200) {
       Iterable json = jsonDecode(response.body);
       return List<Book>.from(json.map((model) => Book.fromJson(model)));
     } else {
       throw Exception('Failed to load books');
+    }
+  }
+
+  Future<void> rentBook(String token, int bookId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/books/rentals/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Token $token',
+      },
+      body: jsonEncode(<String, String>{
+        'book': bookId.toString(),
+        // Assume 'userProfileId' is the ID of the user's profile
+        'user_profile': '<userProfileId>',
+        'rental_days': '7', // Assume the book is rented for 7 days
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to rent book');
     }
   }
 }

@@ -32,9 +32,11 @@ class LoginView(APIView):
         
         if user is not None:
             token, created = Token.objects.get_or_create(user=user)
+            user_profile = UserProfile.objects.get(user=user)  # get the user profile
             return Response({
                 'token': token.key,
                 'user_id': user.pk,
+                'user_profile_id': user_profile.pk,  # return the user profile id
                 'email': user.email,
                 'is_staff': user.is_staff,
             })
