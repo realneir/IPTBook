@@ -4,20 +4,28 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from .models import UserProfile
 from .serializers import UserProfileSerializer, UserRegistrationSerializer
+from rest_framework.permissions import AllowAny
 
 class UserProfileListCreateView(generics.ListCreateAPIView):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
+    authentication_classes = []
+    permission_classes = []
 
 class UserRegistrationView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserRegistrationSerializer
+    authentication_classes = []  # No authentication is required for registration
+    permission_classes = []  # No permissions are required for registration
 
 class LoginView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
-        print(request.data) 
         username = request.data.get('username')
         password = request.data.get('password')
         user = authenticate(request, username=username, password=password)
@@ -31,5 +39,4 @@ class LoginView(APIView):
                 'is_staff': user.is_staff,
             })
         else:
-            # Invalid credentials
             return Response({'error': 'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)

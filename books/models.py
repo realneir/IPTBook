@@ -12,5 +12,4 @@ class Rental(models.Model):
     rental_days = models.IntegerField()
     rental_date = models.DateField(auto_now_add=True)
     price = models.DecimalField(max_digits=5, decimal_places=2)
-    def calculate_price(self, price_per_day):
-        self.price = self.rental_days * price_per_day
+

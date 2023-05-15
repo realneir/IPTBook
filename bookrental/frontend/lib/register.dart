@@ -1,60 +1,36 @@
 import 'package:flutter/material.dart';
-import 'Bookpage.dart';
 import 'NetworkService.dart';
-import 'register.dart';
 
-class LoginPage extends StatefulWidget {
+class RegisterPage extends StatefulWidget {
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _RegisterPageState createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-
-  String? _token;
+  final _emailController = TextEditingController();
 
   @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
-  Future<void> _login() async {
+  Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final token = await NetworkService().login(
+        await NetworkService().register(
           _usernameController.text,
           _passwordController.text,
+          _emailController.text,
         );
-        if (token == null || token.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Login failed. Please check your credentials.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        } else {
-          setState(() {
-            _token = token;
-          });
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => BookPage(token: _token!),
-            ),
-          );
-        }
+        Navigator.pop(context);
       } catch (e) {
         print(e);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Login failed. Please check your credentials.'),
-            backgroundColor: Colors.red,
-          ),
-        );
       }
     }
   }
@@ -63,7 +39,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Login'),
+        title: Text('Register'),
       ),
       body: Form(
         key: _formKey,
@@ -82,6 +58,16 @@ class _LoginPageState extends State<LoginPage> {
                 },
               ),
               TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(labelText: 'Email'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your email';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
                 controller: _passwordController,
                 decoration: InputDecoration(labelText: 'Password'),
                 obscureText: true,
@@ -93,17 +79,22 @@ class _LoginPageState extends State<LoginPage> {
                 },
               ),
               ElevatedButton(
-                onPressed: _login,
-                child: Text('Login'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RegisterPage(),
-                    ),
+                onPressed: () async {
+                  bool success = await NetworkService().register(
+                    _usernameController.text,
+                    _passwordController.text,
+                    _emailController.text,
                   );
+                  if (success) {
+                    Navigator.pop(context);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Registration failed. Please try again.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 },
                 child: Text('Register'),
               ),
